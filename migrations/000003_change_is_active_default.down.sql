@@ -1,0 +1,2 @@
+ALTER TABLE cards 
+ALTER COLUMN is_active SET DEFAULT true;

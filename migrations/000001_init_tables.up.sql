@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    telegram_id BIGINT UNIQUE NOT NULL,
+    telegram_name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    balance DECIMAL(15, 2) DEFAULT 0.00
+);
+CREATE TABLE IF NOT EXISTS cards (
+    id BIGSERIAL PRIMARY KEY,
+    phone VARCHAR(15) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_busy BOOLEAN DEFAULT FALSE
+);
+CREATE TABLE IF NOT EXISTS codes (
+    id BIGSERIAL PRIMARY KEY,
+    phone BIGINT REFERENCES cards(id),
+    code VARCHAR(40) NOT NULL, 
+    expires_at TIMESTAMP NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT false
+);
+CREATE TABLE rentals (
+    id BIGSERIAL PRIMARY KEY,
+    card_id BIGINT NOT NULL REFERENCES cards(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    rented_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL,
+    status TEXT DEFAULT 'active'
+)
