@@ -16,9 +16,6 @@ import (
 )
 
 func main() {
-	// if err := godotenv.Load(); err != nil {
-	// 	log.Println("No .env file found, using system env")
-	// }
 	ctx := context.Background()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -39,8 +36,8 @@ func main() {
 			metrics.DbPoolConnections.WithLabelValues("idle").Set(float64(stat.IdleConns()))
 		}
 	}()
-
-	bot, err := tgbotapi.NewBotAPI("8705284890:AAEEydfrYpAcKx1B2bu_mKbjW4JGIKKsFsk")
+	key := os.Getenv("TG_TOKEN")
+	bot, err := tgbotapi.NewBotAPI(key)
 	if err != nil {
 		log.Fatal(err)
 	}

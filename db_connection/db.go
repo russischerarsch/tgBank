@@ -2,17 +2,18 @@ package dbconnection
 
 import (
 	"context"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateConnection(ctx context.Context) (*pgxpool.Pool, error) {
-	// connStr := os.Getenv("DB_CONN")
-	// if connStr == "" {
-	// 	return nil, errors.New("connection url is empty")
-	// }
-	connStr := "postgres://a1111:secret@localhost:5432/postgres?sslmode=disable"
+	connStr := os.Getenv("DB_CONN")
+	if connStr == "" {
+		return nil, errors.New("connection url is empty")
+	}
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err

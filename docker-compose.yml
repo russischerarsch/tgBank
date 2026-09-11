@@ -9,8 +9,10 @@ services:
     container_name: bank-app
     ports:
       - "8080:8080"
+    env_file:
+      - .env 
     environment:
-      - DB_CONN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      - DB_CONN=${DB_CONN}
       - GIN_MODE=release
     depends_on:
       postgres:
@@ -21,10 +23,12 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: plata-postgres
+    env_file:
+      - .env 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER}   
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  
+      POSTGRES_DB: ${POSTGRES_DB}  
     ports:
       - "5432:5432"
     volumes:

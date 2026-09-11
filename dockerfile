@@ -23,8 +23,6 @@ RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /app/main .
 
-COPY --from=builder /app/dist ./dist
-
 EXPOSE 8080
 
 # Запускаем
