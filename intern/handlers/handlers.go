@@ -109,7 +109,7 @@ func (t *TgBotHandler) sendMessage(chatID int64, message string) {
 	msg := tgbotapi.NewMessage(chatID, message)
 	msg.ParseMode = "Markdown"
 	if _, err := t.bot.Send(msg); err != nil {
-		slog.Error("Ошибка отправки: %v", err)
+		slog.Error("Ошибка отправки", "error", err)
 	}
 }
 func (t *TgBotHandler) handleMessage(message *tgbotapi.Message) {
@@ -378,7 +378,7 @@ func (t *TgBotHandler) handleRent(chatID int64, user *tgbotapi.User, text string
 		t.sendMessage(chatID, "❌ Сервис не выбран. Начните аренду заново.")
 		return
 	}
-	rentedCount, err := t.service.RentCard(ctx, user.ID, service)
+	_, err := t.service.RentCard(ctx, user.ID, service)
 	if err != nil {
 		// Обрабатываем ошибки
 		if strings.Contains(err.Error(), "no free cards") {
@@ -398,7 +398,6 @@ func (t *TgBotHandler) handleRent(chatID int64, user *tgbotapi.User, text string
 	text = fmt.Sprintf(
 		"✅ *%s*, вы арендовали сим-карту на 20 минут!",
 		username,
-		rentedCount,
 	)
 	t.sendMessage(chatID, text)
 }
