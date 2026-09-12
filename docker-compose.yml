@@ -1,11 +1,7 @@
-version: '3.8'
-
 services:
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/smartWalrus/tgbank:latest
     container_name: bank-app
     ports:
       - "8080:8080"
