@@ -50,5 +50,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             cd ~/tgBank
+            git pull
             sudo docker compose pull
             sudo docker compose up -d
