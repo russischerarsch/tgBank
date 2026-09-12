@@ -1,7 +1,7 @@
 services:
 
   app:
-    image: ghcr.io/smartWalrus/tgbank:latest
+    image: ghcr.io/walrusest/tgbank:latest
     container_name: bank-app
     ports:
       - "8080:8080"
