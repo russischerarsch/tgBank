@@ -38,3 +38,17 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/walrusest/tgbank:latest
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            cd ~/tgBank
+            sudo docker compose pull
+            sudo docker compose up -d
