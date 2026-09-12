@@ -37,4 +37,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/smartwalrus/tgbank:latest
+          tags: ghcr.io/walrusest/tgbank:latest
