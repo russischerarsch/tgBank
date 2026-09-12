@@ -16,22 +16,20 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// filterUpdates — оборачивает канал апдейтов, отбрасывая заблокированных.
 func filterUpdates(in tgbotapi.UpdatesChannel, svc *service.Service, log *slog.Logger) tgbotapi.UpdatesChannel {
-	out := make(chan tgbotapi.Update) // ← новый канал
+	out := make(chan tgbotapi.Update)
 	go func() {
 		defer close(out)
-		for u := range in { // ← читаем из оригинального канала
+		for u := range in {
 			if shouldSkip(u, svc, log) {
-				continue // ← заблокирован — не пускаем дальше
+				continue
 			}
-			out <- u // ← пускаем дальше
+			out <- u
 		}
 	}()
 	return out
 }
 
-// shouldSkip — решает, пропускать ли апдейт.
 func shouldSkip(u tgbotapi.Update, svc *service.Service, log *slog.Logger) bool {
 	var userID string
 	switch {
@@ -40,7 +38,7 @@ func shouldSkip(u tgbotapi.Update, svc *service.Service, log *slog.Logger) bool 
 	case u.CallbackQuery != nil:
 		userID = strconv.FormatInt(u.CallbackQuery.From.ID, 10)
 	default:
-		return false // не message/callback — пропускаем
+		return false
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -49,7 +47,7 @@ func shouldSkip(u tgbotapi.Update, svc *service.Service, log *slog.Logger) bool 
 	blocked, err := svc.IsBlocked(ctx, userID)
 	if err != nil {
 		log.Error("is_blocked", "err", err, "user", userID)
-		return false // ошибка БД — не блокируем, пропускаем
+		return false
 	}
 	if blocked {
 		log.Info("blocked user ignored", "user", userID)
