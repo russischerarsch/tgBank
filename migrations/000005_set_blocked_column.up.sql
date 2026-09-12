@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD COLUMN is_blocked NOT NULL DEFAULT false
