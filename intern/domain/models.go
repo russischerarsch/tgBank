@@ -8,6 +8,7 @@ type User struct {
 	TelegramName string
 	CreatedAt    time.Time
 	Balance      float64
+	IsBlocked    bool
 }
 type VerificationCode struct {
 	Id        int64
