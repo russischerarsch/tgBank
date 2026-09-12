@@ -267,3 +267,12 @@ func (r *Repository) UpdateServiceStatusCard(ctx context.Context, service string
 
 	return nil
 }
+func (r *Repository) IsBlocked(ctx context.Context, userID string) (bool, error) {
+	query := `
+	SELECT is_blocked FROM users
+	WHERE telegram_id = $1
+	`
+	var blocked bool
+	err := r.db.QueryRow(ctx, query, userID).Scan(&blocked)
+	return blocked, err
+}

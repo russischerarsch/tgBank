@@ -44,24 +44,7 @@ func (s *Service) CreateUser(ctx context.Context, tgID int64, tgName string) err
 
 	return nil
 }
-func (s *Service) CreateCard(ctx context.Context, phone string) error {
-	card := &domain.SimCard{
-		Phone:     phone,
-		CreatedAt: time.Now(),
-	}
-	if err := validatePhone(phone); err != nil {
-		slog.Warn("Phone validation failed", "phone", phone, "error", err)
-		return fmt.Errorf("validation failed, %w", err)
-	}
-	if err := s.repo.CreateCard(ctx, card); err != nil {
-		slog.Error("Failed to create card", "phone", phone, "error", err)
-		return fmt.Errorf("create card: %w", err)
-	}
-	slog.Info("Card created", "phone", phone)
-	metrics.CardsTotal.Inc()
-	metrics.CardsFree.Inc()
-	return nil
-}
+
 func (s *Service) RentCard(ctx context.Context, tgID int64, service string) (int, error) {
 	user, err := s.repo.FindUserByTgID(ctx, tgID)
 	if err != nil {
@@ -148,7 +131,6 @@ func (s *Service) GetBalance(ctx context.Context, telegramID int64) (float64, er
 	}
 	return user.Balance, nil
 }
-func validatePhone(phone string) error {
-	time.Sleep(1 * time.Second)
-	return nil
+func (s *Service) IsBlocked(ctx context.Context, userID string) (bool, error) {
+	return s.repo.IsBlocked(ctx, userID)
 }

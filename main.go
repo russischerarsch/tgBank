@@ -10,10 +10,52 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
+
+// filterUpdates — оборачивает канал апдейтов, отбрасывая заблокированных.
+func filterUpdates(in tgbotapi.UpdatesChannel, svc *service.Service, log *slog.Logger) tgbotapi.UpdatesChannel {
+	out := make(chan tgbotapi.Update) // ← новый канал
+	go func() {
+		defer close(out)
+		for u := range in { // ← читаем из оригинального канала
+			if shouldSkip(u, svc, log) {
+				continue // ← заблокирован — не пускаем дальше
+			}
+			out <- u // ← пускаем дальше
+		}
+	}()
+	return out
+}
+
+// shouldSkip — решает, пропускать ли апдейт.
+func shouldSkip(u tgbotapi.Update, svc *service.Service, log *slog.Logger) bool {
+	var userID string
+	switch {
+	case u.Message != nil:
+		userID = strconv.FormatInt(u.Message.From.ID, 10)
+	case u.CallbackQuery != nil:
+		userID = strconv.FormatInt(u.CallbackQuery.From.ID, 10)
+	default:
+		return false // не message/callback — пропускаем
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	blocked, err := svc.IsBlocked(ctx, userID)
+	if err != nil {
+		log.Error("is_blocked", "err", err, "user", userID)
+		return false // ошибка БД — не блокируем, пропускаем
+	}
+	if blocked {
+		log.Info("blocked user ignored", "user", userID)
+	}
+	return blocked
+}
 
 func main() {
 	ctx := context.Background()
@@ -21,6 +63,7 @@ func main() {
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
+
 	pool, err := dbconnection.CreateConnection(ctx)
 	if err != nil {
 		log.Fatal("DB:", err)
@@ -36,18 +79,24 @@ func main() {
 			metrics.DbPoolConnections.WithLabelValues("idle").Set(float64(stat.IdleConns()))
 		}
 	}()
+
 	key := os.Getenv("TG_TOKEN")
 	bot, err := tgbotapi.NewBotAPI(key)
 	if err != nil {
 		log.Fatal(err)
 	}
 	bot.Debug = true
+
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 60
+
 	repo := repo.CreateRepo(pool)
-	service := service.CreateService(repo)
+	svc := service.CreateService(repo)
+
 	updatesChan := bot.GetUpdatesChan(updateConfig)
-	tgHandler := handlers.CreateTgBotHandler(service, bot)
+	updatesChan = filterUpdates(updatesChan, svc, logger)
+
+	tgHandler := handlers.CreateTgBotHandler(svc, bot)
 	for update := range updatesChan {
 		tgHandler.HandleUpdate(update)
 	}
