@@ -1,6 +1,7 @@
 package goip
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"strconv"
@@ -12,6 +13,9 @@ type ConsumerHandler struct {
 	client *GoIPClient
 }
 
+func NewConsumerHandler(client *GoIPClient) *ConsumerHandler {
+	return &ConsumerHandler{client: client}
+}
 func (h *ConsumerHandler) Setup(sarama.ConsumerGroupSession) error {
 	log.Println("🔌 Kafka consumer connected")
 	return nil
@@ -20,6 +24,14 @@ func (h *ConsumerHandler) Setup(sarama.ConsumerGroupSession) error {
 func (h *ConsumerHandler) Cleanup(sarama.ConsumerGroupSession) error {
 	log.Println("🔌 Kafka consumer disconnected")
 	return nil
+}
+func (c *GoIPConsumer) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
+	return c.consumer.Consume(ctx, topics, handler)
+}
+
+// Close — закрыть consumer
+func (c *GoIPConsumer) Close() error {
+	return c.consumer.Close()
 }
 func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
