@@ -2,6 +2,7 @@ package main
 
 import (
 	dbconnection "bankTg/db_connection"
+	"bankTg/goip"
 	"bankTg/intern/handlers"
 	"bankTg/intern/metrics"
 	"bankTg/intern/repo"
@@ -11,6 +12,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -57,6 +59,29 @@ func shouldSkip(u tgbotapi.Update, svc *service.Service, log *slog.Logger) bool 
 
 func main() {
 	ctx := context.Background()
+	go func() {
+		goipClient := goip.NewIPClient(
+			os.Getenv("GOIP_IP"),
+			os.Getenv("GOIP_USER"),
+			os.Getenv("GOIP_PASSWORD"),
+		)
+		brokers := strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+		consumer, err := goip.NewGoIPConsumer(brokers, "goip-group", goipClient)
+		if err != nil {
+			log.Fatal("kafka consumer: ", err)
+		}
+		defer consumer.Close()
+
+		handler := goip.NewConsumerHandler(goipClient)
+		topics := []string{"goip.commands"}
+
+		for {
+			if err := consumer.Consume(ctx, topics, handler); err != nil {
+				log.Println("consume error:", err)
+			}
+		}
+	}()
+
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))

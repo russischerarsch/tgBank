@@ -2,7 +2,6 @@ package goip
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -105,20 +104,4 @@ func (i *GoIPClient) GetInbox() (*InboxResponse, error) { // банк сообщ
 		return nil, fmt.Errorf("JSON decode: %w", err)
 	}
 	return &result, nil
-}
-func (i *GoIPClient) GetInboxBySlot(slot int) ([]IncomingSMS, error) {
-	inbox, err := i.GetInbox()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read from inbox, %w", err)
-	}
-	var result []IncomingSMS
-	for _, message := range inbox.Messages {
-		if message.Slot == slot {
-			result = append(result, message)
-		}
-	}
-	if len(result) == 0 {
-		return nil, errors.New("no message for this slot")
-	}
-	return result, nil
 }
