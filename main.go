@@ -86,7 +86,6 @@ func main() {
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
-
 	pool, err := dbconnection.CreateConnection(ctx)
 	if err != nil {
 		log.Fatal("DB:", err)
