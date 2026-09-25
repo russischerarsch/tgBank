@@ -1,5 +1,4 @@
 # tgBank
-# tgBank
 
 **tgBank** — backend-приложение на Go для управления арендой банковских карт через Telegram-бота.
 
